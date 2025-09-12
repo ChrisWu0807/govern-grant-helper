@@ -161,7 +161,7 @@ ${correction_notes}
             error: "AI 回傳格式錯誤，請重新嘗試",
             raw_response: text,
             clean_text: cleanText,
-            parse_error: parseError.message
+            parse_error: parseError instanceof Error ? parseError.message : String(parseError)
           },
           { status: 500 }
         );
