@@ -221,24 +221,6 @@ export default function Home() {
         <ExampleSection />
 
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          {/* 進度條 */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-600">
-                步驟 {currentStep + 1} / {storyTemplate.length} - {storyTemplate[currentStep].category}
-              </span>
-              <span className="text-sm text-gray-500">
-                {Math.round(((currentStep + 1) / storyTemplate.length) * 100)}% 完成
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${((currentStep + 1) / storyTemplate.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-
           {/* 故事填空區域 */}
           <div className="mb-8">
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
@@ -253,10 +235,24 @@ export default function Home() {
             {/* 當前輸入欄位 */}
             <div className="space-y-4">
               <div className="text-center">
-                <div className="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full mb-3 animate-pulse">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-ping"></span>
-                  正在填寫：{storyTemplate[currentStep].label}
+                {/* 進度條移動到這裡 */}
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      步驟 {currentStep + 1} / {storyTemplate.length} - {storyTemplate[currentStep].category}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {Math.round(((currentStep + 1) / storyTemplate.length) * 100)}% 完成
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${((currentStep + 1) / storyTemplate.length) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
+
                 <h4 className="text-xl font-semibold text-gray-800 mb-2">
                   💡 請填寫：{storyTemplate[currentStep].label}
                 </h4>
