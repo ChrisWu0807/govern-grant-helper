@@ -66,7 +66,35 @@ export async function POST(request: NextRequest) {
     });
 
     const text = completion.choices[0].message?.content ?? "{}";
-    const parsed = JSON.parse(text);
+    
+    // 清理 Markdown 格式的程式碼區塊
+    let cleanText = text.trim();
+    
+    // 移除 ```json 和 ``` 標記
+    if (cleanText.startsWith('```json')) {
+      cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanText.startsWith('```')) {
+      cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    // 嘗試解析 JSON
+    let parsed;
+    try {
+      parsed = JSON.parse(cleanText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Raw text:', text);
+      console.error('Clean text:', cleanText);
+      
+      // 如果解析失敗，回傳錯誤訊息
+      return NextResponse.json(
+        { 
+          error: "AI 回傳格式錯誤，請重新嘗試",
+          raw_response: text 
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(parsed);
   } catch (error) {

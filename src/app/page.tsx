@@ -56,6 +56,7 @@ export default function Home() {
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -76,6 +77,7 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setResult(null);
+    setError(null);
     setLoading(true);
 
     try {
@@ -86,9 +88,16 @@ export default function Home() {
       });
 
       const data = await res.json();
-      setResult(data);
+      
+      if (data.error) {
+        setError(data.error);
+        console.error("API Error:", data);
+      } else {
+        setResult(data);
+      }
     } catch (error) {
       console.error("Error:", error);
+      setError("網路錯誤，請檢查連線後重試");
     } finally {
       setLoading(false);
     }
@@ -216,6 +225,26 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8">
+            <div className="flex items-center">
+              <div className="text-red-600 text-2xl mr-3">⚠️</div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-800 mb-2">
+                  發生錯誤
+                </h3>
+                <p className="text-red-700">{error}</p>
+                <button
+                  onClick={() => setError(null)}
+                  className="mt-3 text-red-600 hover:text-red-800 underline"
+                >
+                  關閉
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {result && (
           <div className="bg-white rounded-2xl shadow-xl p-8">
