@@ -125,10 +125,22 @@ ${correction_notes}
     const text = completion.choices[0].message?.content ?? "{}";
 
     let cleanText = text.trim();
-    if (cleanText.startsWith('```json')) {
+    
+    // 提取 JSON 部分 - 尋找 ```json 和 ``` 之間的内容
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      cleanText = jsonMatch[1].trim();
+    } else if (cleanText.startsWith('```json')) {
       cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
     } else if (cleanText.startsWith('```')) {
       cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    } else {
+      // 如果沒有代碼塊，尋找 JSON 對象的開始和結束
+      const jsonStart = cleanText.indexOf('{');
+      const jsonEnd = cleanText.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
+      }
     }
 
     let parsed;
