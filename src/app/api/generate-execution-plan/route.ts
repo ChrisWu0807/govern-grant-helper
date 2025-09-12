@@ -138,13 +138,34 @@ ${correction_notes}
       console.error('JSON parse error:', parseError);
       console.error('Raw text:', text);
       console.error('Clean text:', cleanText);
-      return NextResponse.json(
-        {
-          error: "AI 回傳格式錯誤，請重新嘗試",
-          raw_response: text
-        },
-        { status: 500 }
-      );
+      console.error('Clean text length:', cleanText.length);
+      console.error('First 200 chars:', cleanText.substring(0, 200));
+      console.error('Last 200 chars:', cleanText.substring(cleanText.length - 200));
+      
+      // 嘗試修復常見的 JSON 格式問題
+      let fixedText = cleanText;
+      
+      // 修復可能的尾隨逗號問題
+      fixedText = fixedText.replace(/,(\s*[}\]])/g, '$1');
+      
+      // 修復可能的單引號問題
+      fixedText = fixedText.replace(/'/g, '"');
+      
+      try {
+        parsed = JSON.parse(fixedText);
+        console.log('Successfully parsed after fixing');
+      } catch (secondParseError) {
+        console.error('Second parse also failed:', secondParseError);
+        return NextResponse.json(
+          {
+            error: "AI 回傳格式錯誤，請重新嘗試",
+            raw_response: text,
+            clean_text: cleanText,
+            parse_error: parseError.message
+          },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json(parsed);
