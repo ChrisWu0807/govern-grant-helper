@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 政府補助案小助手
 
-## Getting Started
+一個基於 AI 的政府補助案申請助手，幫助創業者快速生成專業的計畫摘要。
 
-First, run the development server:
+## ✨ 功能特色
+
+- 🤖 使用 OpenAI GPT-4o-mini 生成專業內容
+- 📝 11 個詳細欄位收集創業項目資訊
+- 🎯 自動生成四大核心內容：
+  - 創業動機及計畫目標
+  - 產品描述
+  - 重要工作項目
+  - 產出及效益
+- 💡 內建範例展示功能
+- 🎨 現代化響應式 UI 設計
+
+## 🛠️ 技術棧
+
+- **前端**: Next.js 14 + TypeScript + Tailwind CSS
+- **後端**: Next.js API Routes
+- **AI**: OpenAI GPT-4o-mini
+- **部署**: 支援 Vercel、Zeabur 等平台
+
+## 🚀 快速開始
+
+### 1. 安裝依賴
+
+```bash
+npm install
+```
+
+### 2. 設定環境變數
+
+複製 `.env.example` 並重新命名為 `.env.local`：
+
+```bash
+cp .env.example .env.local
+```
+
+在 `.env.local` 中設定您的 OpenAI API Key：
+
+```
+OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+### 3. 本地開發
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打開瀏覽器訪問 [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. 建置生產版本
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 📋 使用方式
 
-To learn more about Next.js, take a look at the following resources:
+1. 填寫 11 個欄位的創業項目資訊
+2. 點擊「生成計畫摘要」按鈕
+3. AI 將自動生成專業的計畫摘要
+4. 查看生成的四大核心內容
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🌐 部署
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Vercel 部署
 
-## Deploy on Vercel
+1. 將專案推送到 GitHub
+2. 在 Vercel 中導入專案
+3. 設定環境變數 `OPENAI_API_KEY`
+4. 部署完成
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Zeabur 部署
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 將專案推送到 GitHub
+2. 在 Zeabur 中創建新專案
+3. 選擇「Import from GitHub」
+4. 選擇專案並設定環境變數
+5. 點擊 Deploy
+
+## 📝 環境變數
+
+| 變數名稱 | 說明 | 必填 |
+|---------|------|------|
+| `OPENAI_API_KEY` | OpenAI API 金鑰 | ✅ |
+
+## 🤝 貢獻
+
+歡迎提交 Issue 和 Pull Request！
+
+## 📄 授權
+
+MIT License
