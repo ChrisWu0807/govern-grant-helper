@@ -328,11 +328,11 @@ export default function ExecutionPlan() {
               📋 您的計劃摘要
             </h3>
             <div className="bg-gray-50 rounded-lg p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div><strong>產品：</strong>{planSummary.formData.product}</div>
-                <div><strong>服務：</strong>{planSummary.formData.service}</div>
-                <div><strong>特色：</strong>{planSummary.formData.feature}</div>
-                <div><strong>客群：</strong>{planSummary.formData.target}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-800">
+                <div><strong className="text-gray-900">產品：</strong><span className="text-gray-700">{planSummary.formData.product}</span></div>
+                <div><strong className="text-gray-900">服務：</strong><span className="text-gray-700">{planSummary.formData.service}</span></div>
+                <div><strong className="text-gray-900">特色：</strong><span className="text-gray-700">{planSummary.formData.feature}</span></div>
+                <div><strong className="text-gray-900">客群：</strong><span className="text-gray-700">{planSummary.formData.target}</span></div>
               </div>
             </div>
           </div>
