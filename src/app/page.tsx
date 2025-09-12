@@ -25,17 +25,17 @@ interface Result {
 }
 
 const storyTemplate = [
-  { key: "product", label: "產品", placeholder: "例如：智能健康監測手環", position: 1 },
-  { key: "service", label: "服務", placeholder: "例如：24小時健康數據監測", position: 2 },
-  { key: "feature", label: "特色", placeholder: "例如：心率監測、睡眠分析、運動追蹤", position: 3 },
-  { key: "target", label: "主要客群", placeholder: "例如：25-45歲注重健康的上班族", position: 4 },
-  { key: "situation", label: "使用情境", placeholder: "例如：日常佩戴監測健康狀況", position: 5 },
-  { key: "ability", label: "能力", placeholder: "例如：AI算法開發、硬體設計", position: 6 },
-  { key: "detail_number", label: "數字化描述", placeholder: "例如：準確率達95%以上，電池續航7天", position: 7 },
-  { key: "analogy", label: "比喻", placeholder: "例如：就像隨身的健康管家", position: 8 },
-  { key: "differentiation", label: "差異化", placeholder: "例如：結合AI算法提供個人化建議", position: 9 },
-  { key: "opportunity", label: "機會", placeholder: "例如：全球可穿戴設備市場年增長率15%", position: 10 },
-  { key: "uniqueness", label: "獨特差異化", placeholder: "例如：首創AI健康預警系統", position: 11 },
+  { key: "product", label: "產品", placeholder: "例如：智能健康監測手環", position: 1, category: "基礎資訊" },
+  { key: "service", label: "服務", placeholder: "例如：24小時健康數據監測", position: 2, category: "基礎資訊" },
+  { key: "feature", label: "特色", placeholder: "例如：心率監測、睡眠分析、運動追蹤", position: 3, category: "基礎資訊" },
+  { key: "target", label: "主要客群", placeholder: "例如：25-45歲注重健康的上班族", position: 4, category: "基礎資訊" },
+  { key: "situation", label: "使用情境", placeholder: "例如：日常佩戴監測健康狀況", position: 5, category: "基礎資訊" },
+  { key: "ability", label: "能力", placeholder: "例如：AI算法開發、硬體設計", position: 6, category: "基礎資訊" },
+  { key: "detail_number", label: "數字化描述", placeholder: "例如：準確率達95%以上，電池續航7天", position: 7, category: "詳細資訊" },
+  { key: "analogy", label: "比喻", placeholder: "例如：就像隨身的健康管家", position: 8, category: "詳細資訊" },
+  { key: "differentiation", label: "差異化", placeholder: "例如：結合AI算法提供個人化建議", position: 9, category: "詳細資訊" },
+  { key: "opportunity", label: "機會", placeholder: "例如：全球可穿戴設備市場年增長率15%", position: 10, category: "詳細資訊" },
+  { key: "uniqueness", label: "獨特差異化", placeholder: "例如：首創AI健康預警系統", position: 11, category: "詳細資訊" },
 ];
 
 export default function Home() {
@@ -57,6 +57,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -78,6 +80,8 @@ export default function Home() {
     e.preventDefault();
     setResult(null);
     setError(null);
+    setShowSuccess(false);
+    setIsAnalyzing(true);
     setLoading(true);
 
     try {
@@ -94,12 +98,16 @@ export default function Home() {
         console.error("API Error:", data);
       } else {
         setResult(data);
+        setShowSuccess(true);
+        // 3秒後隱藏成功提示
+        setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
       console.error("Error:", error);
       setError("網路錯誤，請檢查連線後重試");
     } finally {
       setLoading(false);
+      setIsAnalyzing(false);
     }
   };
 
@@ -143,15 +151,15 @@ export default function Home() {
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-600">
-                步驟 {currentStep + 1} / {storyTemplate.length}
+                步驟 {currentStep + 1} / {storyTemplate.length} - {storyTemplate[currentStep].category}
               </span>
               <span className="text-sm text-gray-500">
                 {Math.round(((currentStep + 1) / storyTemplate.length) * 100)}% 完成
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${((currentStep + 1) / storyTemplate.length) * 100}%` }}
               ></div>
             </div>
@@ -171,11 +179,15 @@ export default function Home() {
             {/* 當前輸入欄位 */}
             <div className="space-y-4">
               <div className="text-center">
+                <div className="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full mb-3 animate-pulse">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-ping"></span>
+                  正在填寫：{storyTemplate[currentStep].label}
+                </div>
                 <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                  請填寫：{storyTemplate[currentStep].label}
+                  💡 請填寫：{storyTemplate[currentStep].label}
                 </h4>
-                <p className="text-gray-600 mb-4">
-                  {storyTemplate[currentStep].placeholder}
+                <p className="text-gray-600 mb-4 bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
+                  💭 {storyTemplate[currentStep].placeholder}
                 </p>
               </div>
               
@@ -184,9 +196,17 @@ export default function Home() {
                 value={form[storyTemplate[currentStep].key as keyof FormData]}
                 onChange={handleChange}
                 placeholder={storyTemplate[currentStep].placeholder}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-lg"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-lg text-gray-900 placeholder-gray-500"
                 rows={4}
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (form[storyTemplate[currentStep].key as keyof FormData].trim()) {
+                      handleNext();
+                    }
+                  }
+                }}
               />
             </div>
           </div>
@@ -197,7 +217,7 @@ export default function Home() {
               type="button"
               onClick={handlePrev}
               disabled={currentStep === 0}
-              className="px-6 py-3 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors duration-200"
+              className="px-6 py-3 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
             >
               ← 上一步
             </button>
@@ -208,16 +228,23 @@ export default function Home() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors duration-200"
+                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-green-300 disabled:to-green-400 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
                 >
-                  {loading ? "生成中..." : "🎯 生成計畫摘要"}
+                  {loading ? (
+                    <span className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      生成中...
+                    </span>
+                  ) : (
+                    "🎯 生成計畫摘要"
+                  )}
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleNext}
                   disabled={!form[storyTemplate[currentStep].key as keyof FormData].trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
                 >
                   下一步 →
                 </button>
@@ -225,6 +252,51 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* AI 分析中提示 */}
+        {isAnalyzing && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 animate-pulse">
+            <div className="flex items-center justify-center">
+              <div className="text-blue-600 text-3xl mr-4">
+                <div className="animate-spin">🤖</div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  正在請 AI 分析中...
+                </h3>
+                <p className="text-blue-700">
+                  請稍候，我們正在為您生成專業的計畫摘要
+                </p>
+                <div className="flex justify-center mt-3">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 完成提示 */}
+        {showSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8 animate-bounce">
+            <div className="flex items-center justify-center">
+              <div className="text-green-600 text-3xl mr-4">
+                ✅
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-green-800 mb-2">
+                  完成輸出！
+                </h3>
+                <p className="text-green-700">
+                  您的計畫摘要已成功生成，請查看下方結果
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8">
