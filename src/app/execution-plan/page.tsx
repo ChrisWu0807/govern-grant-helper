@@ -95,8 +95,12 @@ export default function ExecutionPlan() {
   const loadExistingData = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      if (!token) return;
+      if (!token) {
+        console.log('沒有認證令牌');
+        return;
+      }
 
+      console.log('開始載入計劃摘要資料...');
       const response = await fetch('/api/load-plan-summary', {
         method: 'POST',
         headers: {
@@ -106,9 +110,13 @@ export default function ExecutionPlan() {
       });
 
       const data = await response.json();
+      console.log('API 回傳資料:', data);
       
       if (data.success && data.data) {
+        console.log('成功載入計劃摘要:', data.data);
         setPlanSummary(data.data);
+      } else {
+        console.log('沒有找到計劃摘要資料:', data.message);
       }
     } catch (error) {
       console.error('載入資料錯誤:', error);
@@ -327,14 +335,27 @@ export default function ExecutionPlan() {
             <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
               📋 您的計劃摘要
             </h3>
-            <div className="bg-gray-50 rounded-lg p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-800">
-                <div><strong className="text-gray-900">產品：</strong><span className="text-gray-700">{planSummary.formData.product}</span></div>
-                <div><strong className="text-gray-900">服務：</strong><span className="text-gray-700">{planSummary.formData.service}</span></div>
-                <div><strong className="text-gray-900">特色：</strong><span className="text-gray-700">{planSummary.formData.feature}</span></div>
-                <div><strong className="text-gray-900">客群：</strong><span className="text-gray-700">{planSummary.formData.target}</span></div>
+            {planSummary ? (
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-800">
+                  <div><strong className="text-gray-900">產品：</strong><span className="text-gray-700">{planSummary.formData?.product || '未填寫'}</span></div>
+                  <div><strong className="text-gray-900">服務：</strong><span className="text-gray-700">{planSummary.formData?.service || '未填寫'}</span></div>
+                  <div><strong className="text-gray-900">特色：</strong><span className="text-gray-700">{planSummary.formData?.feature || '未填寫'}</span></div>
+                  <div><strong className="text-gray-900">客群：</strong><span className="text-gray-700">{planSummary.formData?.target || '未填寫'}</span></div>
+                </div>
+                {/* 除錯資訊 */}
+                <div className="mt-4 p-3 bg-blue-50 rounded text-xs text-blue-700">
+                  <strong>除錯資訊：</strong> planSummary 已載入，formData: {JSON.stringify(planSummary.formData, null, 2)}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-yellow-50 rounded-lg p-6 text-center">
+                <p className="text-yellow-700">正在載入計劃摘要資料...</p>
+                <div className="mt-2 p-3 bg-blue-50 rounded text-xs text-blue-700">
+                  <strong>除錯資訊：</strong> planSummary 為 null
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 填空區域 */}
