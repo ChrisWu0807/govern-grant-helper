@@ -7,6 +7,50 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Home() {
   const { user, logout, loading } = useAuth();
   
+  // 如果正在載入，顯示載入畫面
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果未登入，重定向到登入頁面
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="max-w-md w-full space-y-8 text-center">
+          <div className="flex items-center justify-center mb-6">
+            <Image
+              src="/logo.png"
+              alt="政府補助案小寫手 Logo"
+              width={80}
+              height={80}
+              className="rounded-full shadow-lg"
+              priority
+            />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            📝 政府補助案小寫手
+          </h1>
+          <p className="text-lg text-gray-600 mb-8">
+            請先登入以使用完整功能
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            🔐 立即登入
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
   const features = [
     {
       id: "plan-summary",
@@ -124,31 +168,16 @@ export default function Home() {
           </p>
           
           {/* 用戶狀態 */}
-          <div className="mt-6">
-            {loading ? (
-              <div className="text-gray-500">載入中...</div>
-            ) : user ? (
-              <div className="flex items-center justify-center space-x-4">
-                <span className="text-lg text-gray-700">
-                  歡迎回來，{user.name}！
-                </span>
-                <button
-                  onClick={logout}
-                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
-                >
-                  登出
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center space-x-4">
-                <Link
-                  href="/login"
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
-                >
-                  登入 / 註冊
-                </Link>
-              </div>
-            )}
+          <div className="mt-6 flex items-center justify-center space-x-4">
+            <span className="text-lg text-gray-700">
+              歡迎回來，{user.name}！
+            </span>
+            <button
+              onClick={logout}
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
+            >
+              登出
+            </button>
           </div>
         </div>
 

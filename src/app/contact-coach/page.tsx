@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function ContactCoach() {
   useEffect(() => {
@@ -11,7 +12,8 @@ export default function ContactCoach() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 py-8">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
@@ -140,5 +142,6 @@ export default function ContactCoach() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

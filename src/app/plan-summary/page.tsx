@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ExampleSection from "./components/ExampleSection";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface FormData {
   product: string;
@@ -191,7 +192,8 @@ export default function PlanSummary() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header with Back Button */}
         <div className="mb-8">
@@ -471,5 +473,6 @@ export default function PlanSummary() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
