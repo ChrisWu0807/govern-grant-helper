@@ -151,6 +151,41 @@ export default function PlanSummary() {
     }
   };
 
+  const saveToDatabaseWithData = async (resultData: Result, isCorrection = false) => {
+    if (!user || !resultData) return;
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/save-plan-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          projectName: "我的創業專案",
+          formData: form,
+          result: resultData,
+          isCorrection
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setHasExistingData(true);
+        console.log(isCorrection ? '計劃摘要已更新' : '計劃摘要已儲存');
+      } else {
+        console.error('儲存失敗:', data.error);
+      }
+    } catch (error) {
+      console.error('儲存錯誤:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -190,10 +225,8 @@ export default function PlanSummary() {
       } else {
         setResult(data);
         setShowSuccess(true);
-        // 儲存到資料庫（延遲一點確保 result 已更新）
-        setTimeout(async () => {
-          await saveToDatabase(false);
-        }, 100);
+        // 直接使用 data 儲存到資料庫
+        await saveToDatabaseWithData(data, false);
         // 3秒後隱藏成功提示
         setTimeout(() => setShowSuccess(false), 3000);
       }
@@ -236,10 +269,8 @@ export default function PlanSummary() {
         setResult(data);
         setShowSuccess(true);
         setCorrectionNotes("");
-        // 儲存到資料庫（修正模式，延遲一點確保 result 已更新）
-        setTimeout(async () => {
-          await saveToDatabase(true);
-        }, 100);
+        // 直接使用 data 儲存到資料庫（修正模式）
+        await saveToDatabaseWithData(data, true);
         // 3秒後隱藏成功提示
         setTimeout(() => setShowSuccess(false), 3000);
       }
