@@ -53,12 +53,12 @@ interface ExecutionResult {
 }
 
 const executionTemplate = [
-  { key: "majorProjects", label: "大項目數量", placeholder: "例如：5", type: "number", position: 1, category: "執行規劃" },
-  { key: "subProjectsPerMajor", label: "每個大項目的子項目數量", placeholder: "例如：3", type: "number", position: 2, category: "執行規劃" },
-  { key: "startYear", label: "開始年份", placeholder: "例如：2024", type: "number", position: 3, category: "執行規劃" },
-  { key: "startMonth", label: "開始月份", placeholder: "例如：1", type: "number", position: 4, category: "執行規劃" },
-  { key: "startDay", label: "開始日期", placeholder: "例如：1", type: "number", position: 5, category: "執行規劃" },
-  { key: "durationMonths", label: "執行期間（月數）", placeholder: "例如：12", type: "number", position: 6, category: "執行規劃" },
+  { key: "majorProjects", label: "大項目數量", placeholder: "例如：5", type: "number", position: 1, category: "執行規劃", description: "請填入您希望分為幾個大項目" },
+  { key: "subProjectsPerMajor", label: "每個大項目的子項目數量", placeholder: "例如：3", type: "number", position: 2, category: "執行規劃", description: "請填入每個大項目包含幾個子項目" },
+  { key: "startYear", label: "開始年份", placeholder: "例如：2024", type: "number", position: 3, category: "執行規劃", description: "請填入專案開始的年份" },
+  { key: "startMonth", label: "開始月份", placeholder: "例如：1", type: "number", position: 4, category: "執行規劃", description: "請填入專案開始的月份" },
+  { key: "startDay", label: "開始日期", placeholder: "例如：1", type: "number", position: 5, category: "執行規劃", description: "請填入專案開始的日期" },
+  { key: "durationMonths", label: "執行期間（月數）", placeholder: "例如：12", type: "number", position: 6, category: "執行規劃", description: "請填入專案總執行期間（月數）" },
 ];
 
 export default function ExecutionPlan() {
@@ -358,7 +358,10 @@ export default function ExecutionPlan() {
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
                   💡 請填寫：{executionTemplate[currentStep].label}
                 </h3>
-                <p className="text-gray-600 mb-4 bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
+                <p className="text-gray-600 mb-2 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                  📝 {executionTemplate[currentStep].description}
+                </p>
+                <p className="text-gray-500 mb-4 bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
                   💭 {executionTemplate[currentStep].placeholder}
                 </p>
               </div>
