@@ -83,7 +83,6 @@ export default function PlanSummary() {
   const [correctionNotes, setCorrectionNotes] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasExistingData, setHasExistingData] = useState(false);
 
   // 載入現有資料
   useEffect(() => {
@@ -108,7 +107,6 @@ export default function PlanSummary() {
       if (data.success && data.data) {
         setForm(data.data.formData);
         setResult(data.data.result);
-        setHasExistingData(true);
         setCurrentStep(storyTemplate.length - 1); // 跳到最後一步
       }
     } catch (error) {
@@ -116,40 +114,6 @@ export default function PlanSummary() {
     }
   };
 
-  const saveToDatabase = async (isCorrection = false) => {
-    if (!user || !result) return;
-
-    setIsSaving(true);
-    try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/save-plan-summary', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          projectName: "我的創業專案",
-          formData: form,
-          result: result,
-          isCorrection
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setHasExistingData(true);
-        console.log(isCorrection ? '計劃摘要已更新' : '計劃摘要已儲存');
-      } else {
-        console.error('儲存失敗:', data.error);
-      }
-    } catch (error) {
-      console.error('儲存錯誤:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const saveToDatabaseWithData = async (resultData: Result, isCorrection = false) => {
     if (!user || !resultData) return;
@@ -174,7 +138,6 @@ export default function PlanSummary() {
       const data = await response.json();
       
       if (data.success) {
-        setHasExistingData(true);
         console.log(isCorrection ? '計劃摘要已更新' : '計劃摘要已儲存');
       } else {
         console.error('儲存失敗:', data.error);

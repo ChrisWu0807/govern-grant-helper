@@ -6,6 +6,27 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface FormData {
+  product: string;
+  service: string;
+  feature: string;
+  target: string;
+  situation: string;
+  ability: string;
+  detail_number: string;
+  analogy: string;
+  differentiation: string;
+  opportunity: string;
+  uniqueness: string;
+}
+
+interface Result {
+  motivation_and_goal: string;
+  product_description: string;
+  key_tasks: string;
+  outcomes_and_benefits: string;
+}
+
 interface ExecutionPlanData {
   majorProjects: number;
   subProjectsPerMajor: number;
@@ -60,8 +81,11 @@ export default function ExecutionPlan() {
   const [correctionNotes, setCorrectionNotes] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasExistingData, setHasExistingData] = useState(false);
-  const [planSummary, setPlanSummary] = useState<any>(null);
+  const [planSummary, setPlanSummary] = useState<{
+    formData: FormData;
+    result: Result;
+    projectName: string;
+  } | null>(null);
 
   // 載入現有資料
   useEffect(() => {
@@ -85,7 +109,6 @@ export default function ExecutionPlan() {
       
       if (data.success && data.data) {
         setPlanSummary(data.data);
-        setHasExistingData(true);
       }
     } catch (error) {
       console.error('載入資料錯誤:', error);
@@ -216,7 +239,6 @@ export default function ExecutionPlan() {
       const data = await response.json();
       
       if (data.success) {
-        setHasExistingData(true);
         console.log(isCorrection ? '執行規劃已更新' : '執行規劃已儲存');
       } else {
         console.error('儲存失敗:', data.error);
