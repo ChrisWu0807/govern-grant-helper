@@ -21,6 +21,14 @@ export async function POST(request: NextRequest) {
       isCorrection = false
     } = await request.json();
 
+    // 驗證必要資料
+    if (!formData || !result) {
+      return NextResponse.json(
+        { error: "缺少必要資料" },
+        { status: 400 }
+      );
+    }
+
     // 查找或創建專案
     let projectId;
     if (isCorrection) {

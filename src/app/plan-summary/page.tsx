@@ -117,7 +117,7 @@ export default function PlanSummary() {
   };
 
   const saveToDatabase = async (isCorrection = false) => {
-    if (!user) return;
+    if (!user || !result) return;
 
     setIsSaving(true);
     try {
@@ -190,8 +190,10 @@ export default function PlanSummary() {
       } else {
         setResult(data);
         setShowSuccess(true);
-        // 儲存到資料庫
-        await saveToDatabase(false);
+        // 儲存到資料庫（延遲一點確保 result 已更新）
+        setTimeout(async () => {
+          await saveToDatabase(false);
+        }, 100);
         // 3秒後隱藏成功提示
         setTimeout(() => setShowSuccess(false), 3000);
       }
@@ -234,8 +236,10 @@ export default function PlanSummary() {
         setResult(data);
         setShowSuccess(true);
         setCorrectionNotes("");
-        // 儲存到資料庫（修正模式）
-        await saveToDatabase(true);
+        // 儲存到資料庫（修正模式，延遲一點確保 result 已更新）
+        setTimeout(async () => {
+          await saveToDatabase(true);
+        }, 100);
         // 3秒後隱藏成功提示
         setTimeout(() => setShowSuccess(false), 3000);
       }
