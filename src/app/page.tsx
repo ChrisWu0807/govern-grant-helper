@@ -38,6 +38,22 @@ const storyTemplate = [
   { key: "uniqueness", label: "獨特差異化", placeholder: "例如：首創AI健康預警系統", position: 11, category: "詳細資訊" },
 ];
 
+// 格式化文字，將數字列表分行顯示
+const formatText = (text: string) => {
+  if (!text) return text;
+  
+  // 處理數字列表格式：1. 2. 3. 等
+  let formatted = text.replace(/(\d+)\.\s/g, '\n$1. ');
+  
+  // 處理中文數字列表格式：一、二、三、等
+  formatted = formatted.replace(/([一二三四五六七八九十]+)\.\s/g, '\n$1. ');
+  
+  // 清理多餘的換行
+  formatted = formatted.replace(/\n+/g, '\n').trim();
+  
+  return formatted;
+};
+
 export default function Home() {
   const [form, setForm] = useState<FormData>({
     product: "",
@@ -329,28 +345,28 @@ export default function Home() {
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
                   🎯 創業動機及計畫目標
                 </h3>
-                <p className="text-gray-700 leading-relaxed">{result.motivation_and_goal}</p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">{formatText(result.motivation_and_goal)}</p>
               </div>
 
               <div className="border-l-4 border-green-500 pl-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
                   📦 產品描述
                 </h3>
-                <p className="text-gray-700 leading-relaxed">{result.product_description}</p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">{formatText(result.product_description)}</p>
               </div>
 
               <div className="border-l-4 border-purple-500 pl-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
                   ⚙️ 重要工作項目
                 </h3>
-                <p className="text-gray-700 leading-relaxed">{result.key_tasks}</p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">{formatText(result.key_tasks)}</p>
               </div>
 
               <div className="border-l-4 border-orange-500 pl-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
                   📈 產出及效益
                 </h3>
-                <p className="text-gray-700 leading-relaxed">{result.outcomes_and_benefits}</p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">{formatText(result.outcomes_and_benefits)}</p>
               </div>
             </div>
           </div>
