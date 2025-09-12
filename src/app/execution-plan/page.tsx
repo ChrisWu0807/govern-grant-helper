@@ -53,12 +53,12 @@ interface ExecutionResult {
 }
 
 const executionTemplate = [
-  { key: "majorProjects", label: "大項目數量", placeholder: "例如：5", type: "number" },
-  { key: "subProjectsPerMajor", label: "每個大項目的子項目數量", placeholder: "例如：3", type: "number" },
-  { key: "startYear", label: "開始年份", placeholder: "例如：2024", type: "number" },
-  { key: "startMonth", label: "開始月份", placeholder: "例如：1", type: "number" },
-  { key: "startDay", label: "開始日期", placeholder: "例如：1", type: "number" },
-  { key: "durationMonths", label: "執行期間（月數）", placeholder: "例如：12", type: "number" },
+  { key: "majorProjects", label: "大項目數量", placeholder: "例如：5", type: "number", position: 1, category: "執行規劃" },
+  { key: "subProjectsPerMajor", label: "每個大項目的子項目數量", placeholder: "例如：3", type: "number", position: 2, category: "執行規劃" },
+  { key: "startYear", label: "開始年份", placeholder: "例如：2024", type: "number", position: 3, category: "執行規劃" },
+  { key: "startMonth", label: "開始月份", placeholder: "例如：1", type: "number", position: 4, category: "執行規劃" },
+  { key: "startDay", label: "開始日期", placeholder: "例如：1", type: "number", position: 5, category: "執行規劃" },
+  { key: "durationMonths", label: "執行期間（月數）", placeholder: "例如：12", type: "number", position: 6, category: "執行規劃" },
 ];
 
 export default function ExecutionPlan() {
@@ -339,6 +339,24 @@ export default function ExecutionPlan() {
 
           {/* 填空區域 */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            {/* 進度條 */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  步驟 {currentStep + 1} / {executionTemplate.length} - {executionTemplate[currentStep].category}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(((currentStep + 1) / executionTemplate.length) * 100)}% 完成
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${((currentStep + 1) / executionTemplate.length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
             <div className="mb-8">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
