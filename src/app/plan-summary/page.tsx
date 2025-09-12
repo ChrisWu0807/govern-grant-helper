@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ExampleSection from "./components/ExampleSection";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FormData {
   product: string;
@@ -58,6 +59,7 @@ const formatText = (text: string) => {
 };
 
 export default function PlanSummary() {
+  const { user } = useAuth();
   const [form, setForm] = useState<FormData>({
     product: "",
     service: "",
@@ -80,6 +82,74 @@ export default function PlanSummary() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [correctionNotes, setCorrectionNotes] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasExistingData, setHasExistingData] = useState(false);
+
+  // 載入現有資料
+  useEffect(() => {
+    loadExistingData();
+  }, []);
+
+  const loadExistingData = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/load-plan-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setForm(data.data.formData);
+        setResult(data.data.result);
+        setHasExistingData(true);
+        setCurrentStep(storyTemplate.length - 1); // 跳到最後一步
+      }
+    } catch (error) {
+      console.error('載入資料錯誤:', error);
+    }
+  };
+
+  const saveToDatabase = async (isCorrection = false) => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/save-plan-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          projectName: "我的創業專案",
+          formData: form,
+          result: result,
+          isCorrection
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setHasExistingData(true);
+        console.log(isCorrection ? '計劃摘要已更新' : '計劃摘要已儲存');
+      } else {
+        console.error('儲存失敗:', data.error);
+      }
+    } catch (error) {
+      console.error('儲存錯誤:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -120,6 +190,8 @@ export default function PlanSummary() {
       } else {
         setResult(data);
         setShowSuccess(true);
+        // 儲存到資料庫
+        await saveToDatabase(false);
         // 3秒後隱藏成功提示
         setTimeout(() => setShowSuccess(false), 3000);
       }
@@ -162,6 +234,8 @@ export default function PlanSummary() {
         setResult(data);
         setShowSuccess(true);
         setCorrectionNotes("");
+        // 儲存到資料庫（修正模式）
+        await saveToDatabase(true);
         // 3秒後隱藏成功提示
         setTimeout(() => setShowSuccess(false), 3000);
       }
@@ -370,7 +444,26 @@ export default function PlanSummary() {
                   {isCorrecting ? "修正完成！" : "完成輸出！"}
                 </h3>
                 <p className="text-green-700">
-                  {isCorrecting ? "您的計畫摘要已根據修正備註重新生成" : "您的計畫摘要已成功生成，請查看下方結果"}
+                  {isCorrecting ? "您的計畫摘要已根據修正備註重新生成並儲存" : "您的計畫摘要已成功生成並儲存，請查看下方結果"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 儲存中提示 */}
+        {isSaving && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-center">
+              <div className="text-blue-600 text-3xl mr-4">
+                <div className="animate-spin">💾</div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  正在儲存...
+                </h3>
+                <p className="text-blue-700">
+                  請稍候，我們正在將您的資料儲存到資料庫
                 </p>
               </div>
             </div>
