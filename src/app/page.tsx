@@ -75,6 +75,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [correctionNotes, setCorrectionNotes] = useState("");
+  const [isCorrecting, setIsCorrecting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -124,6 +126,47 @@ export default function Home() {
     } finally {
       setLoading(false);
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleCorrection = async () => {
+    if (!correctionNotes.trim()) {
+      setError("請輸入修正備註");
+      return;
+    }
+
+    setIsCorrecting(true);
+    setError(null);
+    setShowSuccess(false);
+
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          correction_notes: correctionNotes,
+          previous_result: result
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (data.error) {
+        setError(data.error);
+        console.error("API Error:", data);
+      } else {
+        setResult(data);
+        setShowSuccess(true);
+        setCorrectionNotes("");
+        // 3秒後隱藏成功提示
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setError("網路錯誤，請檢查連線後重試");
+    } finally {
+      setIsCorrecting(false);
     }
   };
 
@@ -304,10 +347,10 @@ export default function Home() {
               </div>
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-green-800 mb-2">
-                  完成輸出！
+                  {isCorrecting ? "修正完成！" : "完成輸出！"}
                 </h3>
                 <p className="text-green-700">
-                  您的計畫摘要已成功生成，請查看下方結果
+                  {isCorrecting ? "您的計畫摘要已根據修正備註重新生成" : "您的計畫摘要已成功生成，請查看下方結果"}
                 </p>
               </div>
             </div>
@@ -335,7 +378,7 @@ export default function Home() {
         )}
 
         {result && (
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               📋 生成結果
             </h2>
@@ -367,6 +410,43 @@ export default function Home() {
                   📈 產出及效益
                 </h3>
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">{formatText(result.outcomes_and_benefits)}</p>
+              </div>
+            </div>
+
+            {/* 修正備注區 */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+                ✏️ 修正備註區
+              </h3>
+              <p className="text-gray-600 text-center mb-4">
+                請閱讀上方報告，如有需要修正的地方，請在下方輸入您的修正建議
+              </p>
+              
+              <div className="space-y-4">
+                <textarea
+                  value={correctionNotes}
+                  onChange={(e) => setCorrectionNotes(e.target.value)}
+                  placeholder="請輸入您希望修正的內容，例如：&#10;- 希望更強調技術創新部分&#10;- 需要增加更多量化指標&#10;- 調整市場定位描述&#10;- 加強競爭優勢說明"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
+                  rows={5}
+                />
+                
+                <div className="text-center">
+                  <button
+                    onClick={handleCorrection}
+                    disabled={isCorrecting || !correctionNotes.trim()}
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-orange-300 disabled:to-orange-400 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+                  >
+                    {isCorrecting ? (
+                      <span className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        修正中...
+                      </span>
+                    ) : (
+                      "🔄 根據備註重新生成"
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
