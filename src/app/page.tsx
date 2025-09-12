@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import ExampleSection from "./components/ExampleSection";
 
 interface FormData {
@@ -195,8 +196,22 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
+          {/* Logo 和標題區域 */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              <Image
+                src="/logo.png"
+                alt="政府補助案小寫手 Logo"
+                width={80}
+                height={80}
+                className="rounded-full shadow-lg"
+                priority
+              />
+            </div>
+          </div>
+          
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            🚀 政府補助案小助手
+            📝 政府補助案小寫手
           </h1>
           <p className="text-lg text-gray-600">
             讓我們一起完成您的創業故事，AI 將幫您生成專業的計畫摘要
