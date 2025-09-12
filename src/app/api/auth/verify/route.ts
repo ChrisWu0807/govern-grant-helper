@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 驗證 JWT token
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
 
     // 查找用戶
     const result = await pool.query(

@@ -173,9 +173,6 @@ export default function PlanSummary() {
   };
 
   const getStoryText = () => {
-    const currentField = storyTemplate[currentStep];
-    const filledFields = storyTemplate.slice(0, currentStep + 1);
-    
     let story = "我的產品是【";
     story += form.product || "______";
     story += "】，提供【";
