@@ -2,8 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
+  const { user, logout, loading } = useAuth();
+  
   const features = [
     {
       id: "plan-summary",
@@ -119,6 +122,34 @@ export default function Home() {
           <p className="text-lg text-gray-500">
             從計劃摘要到執行規劃，AI 助您完成整個申請流程
           </p>
+          
+          {/* 用戶狀態 */}
+          <div className="mt-6">
+            {loading ? (
+              <div className="text-gray-500">載入中...</div>
+            ) : user ? (
+              <div className="flex items-center justify-center space-x-4">
+                <span className="text-lg text-gray-700">
+                  歡迎回來，{user.name}！
+                </span>
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
+                >
+                  登出
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-4">
+                <Link
+                  href="/login"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                >
+                  登入 / 註冊
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Feature Grid */}
