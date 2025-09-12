@@ -274,8 +274,10 @@ export default function BudgetPlanning() {
               
               <input
                 name={budgetTemplate[currentStep].key}
-                type={budgetTemplate[currentStep].type}
-                value={form[budgetTemplate[currentStep].key as keyof BudgetData]}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={form[budgetTemplate[currentStep].key as keyof BudgetData] || ''}
                 onChange={handleChange}
                 placeholder={budgetTemplate[currentStep].placeholder}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-lg text-gray-900 placeholder-gray-500"
