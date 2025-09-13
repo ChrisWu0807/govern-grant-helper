@@ -84,6 +84,7 @@ export default function ExecutionPlan() {
     result: Result;
     projectName: string;
   } | null>(null);
+  const [hasExistingData, setHasExistingData] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
   // 載入現有資料
@@ -145,6 +146,7 @@ export default function ExecutionPlan() {
           startDate
         });
         setResult(executionData.data.result);
+        setHasExistingData(true);
       } else {
         console.log('沒有找到執行規劃資料:', executionData.message || '未知錯誤');
       }
@@ -337,7 +339,7 @@ export default function ExecutionPlan() {
 
   // 檢查是否有計劃摘要
   // 如果有現有資料且已生成結果，直接顯示結果頁面
-  if (result && result.project_name) {
+  if (hasExistingData && result && result.project_name) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8">
