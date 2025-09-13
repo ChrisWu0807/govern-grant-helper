@@ -27,6 +27,18 @@ interface MajorProject {
   plan_percentage: number;
 }
 
+interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  href: string;
+  color: string;
+  hoverColor: string;
+  isCompleted?: boolean;
+  isExternal?: boolean;
+}
+
 export default function Home() {
   const { user, logout, loading } = useAuth();
   const [completionStatus, setCompletionStatus] = useState<CompletionStatus | null>(null);
@@ -258,7 +270,7 @@ export default function Home() {
     );
   }
   
-  const features = [
+  const features: Feature[] = [
     {
       id: "plan-summary",
       title: "計劃摘要",
