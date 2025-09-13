@@ -34,18 +34,22 @@ interface ExecutionPlanData {
   durationMonths: number;
 }
 
+interface SubProject {
+  name: string;
+  kpi: string;
+  start_date: string;
+  end_date: string;
+}
+
+interface MajorProject {
+  name: string;
+  sub_projects: SubProject[];
+  plan_percentage: number;
+}
+
 interface ExecutionResult {
   project_name: string;
-  major_projects: Array<{
-    name: string;
-    sub_projects: Array<{
-      name: string;
-      kpi: string;
-      start_date: string;
-      end_date: string;
-    }>;
-    plan_percentage: number;
-  }>;
+  major_projects: MajorProject[];
   total_duration: string;
   execution_period: string;
 }
@@ -355,13 +359,13 @@ export default function ExecutionPlan() {
                 </div>
 
                 {/* 大項目列表 */}
-                {result?.major_projects?.map((majorProject: any, index: number) => (
+                {result?.major_projects?.map((majorProject: MajorProject, index: number) => (
                   <div key={index} className="bg-blue-50 rounded-lg p-6">
                     <h3 className="text-xl font-semibold text-blue-800 mb-4">
                       🎯 {majorProject.name} ({majorProject.plan_percentage}%)
                     </h3>
                     <div className="space-y-4">
-                      {majorProject.sub_projects?.map((subProject: any, subIndex: number) => (
+                      {majorProject.sub_projects?.map((subProject: SubProject, subIndex: number) => (
                         <div key={subIndex} className="bg-white rounded-lg p-4 border-l-4 border-blue-400">
                           <h4 className="font-semibold text-gray-800 mb-2">{subProject.name}</h4>
                           <p className="text-gray-600 mb-2"><strong>KPI：</strong>{subProject.kpi}</p>
@@ -663,7 +667,7 @@ export default function ExecutionPlan() {
                   </div>
                 </div>
 
-                {result?.major_projects?.map((majorProject: any, index: number) => (
+                {result?.major_projects?.map((majorProject: MajorProject, index: number) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-lg font-semibold text-gray-800">
@@ -675,7 +679,7 @@ export default function ExecutionPlan() {
                     </div>
                     
                     <div className="space-y-3">
-                      {majorProject.sub_projects?.map((subProject: any, subIndex: number) => (
+                      {majorProject.sub_projects?.map((subProject: SubProject, subIndex: number) => (
                         <div key={subIndex} className="bg-gray-50 rounded-lg p-4">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-medium text-gray-800">
