@@ -30,9 +30,7 @@ interface Result {
 interface ExecutionPlanData {
   majorProjects: number;
   subProjectsPerMajor: number;
-  startYear: number;
-  startMonth: number;
-  startDay: number;
+  startDate: string; // 改為單一的日期字串
   durationMonths: number;
 }
 
@@ -55,10 +53,8 @@ interface ExecutionResult {
 const executionTemplate = [
   { key: "majorProjects", label: "大項目數量", placeholder: "例如：5", type: "number", position: 1, category: "執行規劃", description: "請填入您希望分為幾個大項目" },
   { key: "subProjectsPerMajor", label: "每個大項目的子項目數量", placeholder: "例如：3", type: "number", position: 2, category: "執行規劃", description: "請填入每個大項目包含幾個子項目" },
-  { key: "startYear", label: "開始年份", placeholder: "例如：2024", type: "number", position: 3, category: "執行規劃", description: "請填入專案開始的年份" },
-  { key: "startMonth", label: "開始月份", placeholder: "例如：1", type: "number", position: 4, category: "執行規劃", description: "請填入專案開始的月份" },
-  { key: "startDay", label: "開始日期", placeholder: "例如：1", type: "number", position: 5, category: "執行規劃", description: "請填入專案開始的日期" },
-  { key: "durationMonths", label: "執行期間（月數）", placeholder: "例如：12", type: "number", position: 6, category: "執行規劃", description: "請填入專案總執行期間（月數）" },
+  { key: "startDate", label: "計畫開始時間", placeholder: "選擇開始日期", type: "date", position: 3, category: "執行規劃", description: "請選擇專案開始的日期" },
+  { key: "durationMonths", label: "執行期間（月數）", placeholder: "例如：12", type: "number", position: 4, category: "執行規劃", description: "請填入專案總執行期間（月數）" },
 ];
 
 export default function ExecutionPlan() {
@@ -66,9 +62,7 @@ export default function ExecutionPlan() {
   const [form, setForm] = useState<ExecutionPlanData>({
     majorProjects: 0,
     subProjectsPerMajor: 0,
-    startYear: 2024,
-    startMonth: 1,
-    startDay: 1,
+    startDate: new Date().toISOString().split('T')[0], // 預設為今天
     durationMonths: 12,
   });
 
@@ -100,8 +94,9 @@ export default function ExecutionPlan() {
         return;
       }
 
+      // 載入計劃摘要
       console.log('開始載入計劃摘要資料...');
-      const response = await fetch('/api/load-plan-summary', {
+      const planSummaryResponse = await fetch('/api/load-plan-summary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,16 +104,44 @@ export default function ExecutionPlan() {
         }
       });
 
-      const data = await response.json();
-      console.log('API 回傳資料:', data);
+      const planSummaryData = await planSummaryResponse.json();
+      console.log('API 回傳資料:', planSummaryData);
       
-      if (data.success && data.data) {
-        console.log('成功載入計劃摘要:', data.data);
-        console.log('formData 內容:', data.data.formData);
-        setPlanSummary(data.data);
+      if (planSummaryData.success && planSummaryData.data) {
+        console.log('成功載入計劃摘要:', planSummaryData.data);
+        setPlanSummary(planSummaryData.data);
       } else {
-        console.log('沒有找到計劃摘要資料:', data.message || '未知錯誤');
-        console.log('完整 API 回應:', data);
+        console.log('沒有找到計劃摘要資料:', planSummaryData.message || '未知錯誤');
+      }
+
+      // 載入執行規劃
+      console.log('開始載入執行規劃資料...');
+      const executionResponse = await fetch('/api/load-execution-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const executionData = await executionResponse.json();
+      console.log('執行規劃 API 回傳資料:', executionData);
+      
+      if (executionData.success && executionData.data) {
+        console.log('成功載入執行規劃:', executionData.data);
+        // 將舊的年份、月份、日期轉換為新的日期格式
+        const { startYear, startMonth, startDay, ...otherData } = executionData.data;
+        const startDate = startYear && startMonth && startDay 
+          ? `${startYear}-${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`
+          : new Date().toISOString().split('T')[0];
+        
+        setForm({
+          ...otherData,
+          startDate
+        });
+        setResult(executionData.data.result);
+      } else {
+        console.log('沒有找到執行規劃資料:', executionData.message || '未知錯誤');
       }
     } catch (error) {
       console.error('載入資料錯誤:', error);
@@ -127,7 +150,11 @@ export default function ExecutionPlan() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: parseInt(value) || 0 });
+    if (name === 'startDate') {
+      setForm({ ...form, [name]: value });
+    } else {
+      setForm({ ...form, [name]: parseInt(value) || 0 });
+    }
   };
 
   const handleNext = () => {
@@ -151,11 +178,20 @@ export default function ExecutionPlan() {
     setLoading(true);
 
     try {
+      // 將日期字串轉換為年份、月份、日期
+      const startDate = new Date(form.startDate);
+      const executionData = {
+        ...form,
+        startYear: startDate.getFullYear(),
+        startMonth: startDate.getMonth() + 1,
+        startDay: startDate.getDate()
+      };
+
       const res = await fetch("/api/generate-execution-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          executionData: form,
+          executionData: executionData,
           planSummary: planSummary
         }),
       });
@@ -261,6 +297,107 @@ export default function ExecutionPlan() {
   };
 
   // 檢查是否有計劃摘要
+  // 如果有現有資料且已生成結果，直接顯示結果頁面
+  if (result && result.project_name) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            {/* Header with Back Button */}
+            <div className="mb-8">
+              <Link
+                href="/"
+                className="inline-flex items-center text-green-600 hover:text-green-800 font-medium mb-4 transition-colors duration-200"
+              >
+                ← 返回中控版
+              </Link>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="relative">
+                    <Image
+                      src="/logo.png"
+                      alt="政府補助案小寫手 Logo"
+                      width={80}
+                      height={80}
+                      className="rounded-full shadow-lg"
+                      priority
+                    />
+                  </div>
+                </div>
+                
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  ⚙️ 您的執行規劃
+                </h1>
+                <p className="text-lg text-gray-600">
+                  以下是您之前生成的執行規劃，可以查看或進行修正
+                </p>
+              </div>
+            </div>
+
+            {/* 顯示現有結果 */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                📋 生成結果
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="bg-green-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-green-800 mb-4">
+                    📊 專案概覽
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-900">
+                    <div><strong className="text-gray-900">專案名稱：</strong><span className="text-gray-800">{result?.project_name || '未設定'}</span></div>
+                    <div><strong className="text-gray-900">執行期間：</strong><span className="text-gray-800">{result?.execution_period || '未設定'}</span></div>
+                    <div><strong className="text-gray-900">總時程：</strong><span className="text-gray-800">{result?.total_duration || '未設定'}</span></div>
+                    <div><strong className="text-gray-900">大項目數：</strong><span className="text-gray-800">{result?.major_projects?.length || 0} 個</span></div>
+                  </div>
+                </div>
+
+                {/* 大項目列表 */}
+                {result?.major_projects?.map((majorProject: any, index: number) => (
+                  <div key={index} className="bg-blue-50 rounded-lg p-6">
+                    <h3 className="text-xl font-semibold text-blue-800 mb-4">
+                      🎯 {majorProject.name} ({majorProject.plan_percentage}%)
+                    </h3>
+                    <div className="space-y-4">
+                      {majorProject.sub_projects?.map((subProject: any, subIndex: number) => (
+                        <div key={subIndex} className="bg-white rounded-lg p-4 border-l-4 border-blue-400">
+                          <h4 className="font-semibold text-gray-800 mb-2">{subProject.name}</h4>
+                          <p className="text-gray-600 mb-2"><strong>KPI：</strong>{subProject.kpi}</p>
+                          <p className="text-gray-600"><strong>時程：</strong>{subProject.start_date} - {subProject.end_date}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 重新填寫按鈕 */}
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => {
+                    setResult(null);
+                    setCurrentStep(0);
+                    setForm({
+                      majorProjects: 0,
+                      subProjectsPerMajor: 0,
+                      startDate: new Date().toISOString().split('T')[0],
+                      durationMonths: 12,
+                    });
+                  }}
+                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  🔄 重新填寫
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   if (!planSummary) {
     return (
       <ProtectedRoute>
@@ -366,15 +503,26 @@ export default function ExecutionPlan() {
                 </p>
               </div>
               
-              <input
-                name={executionTemplate[currentStep].key}
-                type={executionTemplate[currentStep].type}
-                value={form[executionTemplate[currentStep].key as keyof ExecutionPlanData]}
-                onChange={handleChange}
-                placeholder={executionTemplate[currentStep].placeholder}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg text-gray-900 placeholder-gray-500"
-                autoFocus
-              />
+              {executionTemplate[currentStep].type === 'date' ? (
+                <input
+                  name={executionTemplate[currentStep].key}
+                  type="date"
+                  value={form[executionTemplate[currentStep].key as keyof ExecutionPlanData] as string}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg text-gray-900"
+                  autoFocus
+                />
+              ) : (
+                <input
+                  name={executionTemplate[currentStep].key}
+                  type={executionTemplate[currentStep].type}
+                  value={form[executionTemplate[currentStep].key as keyof ExecutionPlanData]}
+                  onChange={handleChange}
+                  placeholder={executionTemplate[currentStep].placeholder}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg text-gray-900 placeholder-gray-500"
+                  autoFocus
+                />
+              )}
             </div>
 
             {/* 導航按鈕 */}
@@ -508,14 +656,14 @@ export default function ExecutionPlan() {
                     📊 專案概覽
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-900">
-                    <div><strong className="text-gray-900">專案名稱：</strong><span className="text-gray-800">{result.project_name}</span></div>
-                    <div><strong className="text-gray-900">執行期間：</strong><span className="text-gray-800">{result.execution_period}</span></div>
-                    <div><strong className="text-gray-900">總時程：</strong><span className="text-gray-800">{result.total_duration}</span></div>
-                    <div><strong className="text-gray-900">大項目數：</strong><span className="text-gray-800">{result.major_projects.length} 個</span></div>
+                    <div><strong className="text-gray-900">專案名稱：</strong><span className="text-gray-800">{result?.project_name || '未設定'}</span></div>
+                    <div><strong className="text-gray-900">執行期間：</strong><span className="text-gray-800">{result?.execution_period || '未設定'}</span></div>
+                    <div><strong className="text-gray-900">總時程：</strong><span className="text-gray-800">{result?.total_duration || '未設定'}</span></div>
+                    <div><strong className="text-gray-900">大項目數：</strong><span className="text-gray-800">{result?.major_projects?.length || 0} 個</span></div>
                   </div>
                 </div>
 
-                {result.major_projects.map((majorProject, index) => (
+                {result?.major_projects?.map((majorProject: any, index: number) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-lg font-semibold text-gray-800">
@@ -527,7 +675,7 @@ export default function ExecutionPlan() {
                     </div>
                     
                     <div className="space-y-3">
-                      {majorProject.sub_projects.map((subProject, subIndex) => (
+                      {majorProject.sub_projects?.map((subProject: any, subIndex: number) => (
                         <div key={subIndex} className="bg-gray-50 rounded-lg p-4">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-medium text-gray-800">
