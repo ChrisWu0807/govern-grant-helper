@@ -25,7 +25,6 @@ const budgetTemplate = [
 ];
 
 export default function BudgetPlanning() {
-  const { user } = useAuth();
   const [form, setForm] = useState<BudgetData>({
     totalBudget: 0,
     selfFundRatio: 0,
@@ -89,9 +88,9 @@ export default function BudgetPlanning() {
     textToCopy += `補助款：${formatCurrency(budgetData.subsidyAmount)} (${form.subsidyRatio}%)\n\n`;
     
     textToCopy += `📋 預算分配\n`;
-    textToCopy += `人事成本：${formatCurrency(budgetData.personnelCostAmount)} (${form.personnelCostRatio}%)\n`;
-    textToCopy += `委外研究費：${formatCurrency(budgetData.researchCostAmount)} (${form.researchCostRatio}%)\n`;
-    textToCopy += `市場驗證費：${formatCurrency(budgetData.marketValidationAmount)} (${form.marketValidationRatio}%)\n\n`;
+    textToCopy += `人事成本：${formatCurrency(budgetData.personnelCost)} (${form.personnelCostRatio}%)\n`;
+    textToCopy += `委外研究費：${formatCurrency(budgetData.researchCost)} (${form.researchCostRatio}%)\n`;
+    textToCopy += `市場驗證費：${formatCurrency(budgetData.marketValidationCost)} (${form.marketValidationRatio}%)\n\n`;
     
     textToCopy += `📈 預算明細表\n`;
     textToCopy += `項目\t\t金額\t\t比例\n`;
@@ -100,9 +99,9 @@ export default function BudgetPlanning() {
     textToCopy += `自籌款\t\t${formatCurrency(budgetData.selfFundAmount)}\t\t${form.selfFundRatio}%\n`;
     textToCopy += `補助款\t\t${formatCurrency(budgetData.subsidyAmount)}\t\t${form.subsidyRatio}%\n`;
     textToCopy += `────────────────────────────\n`;
-    textToCopy += `人事成本\t\t${formatCurrency(budgetData.personnelCostAmount)}\t\t${form.personnelCostRatio}%\n`;
-    textToCopy += `委外研究費\t\t${formatCurrency(budgetData.researchCostAmount)}\t\t${form.researchCostRatio}%\n`;
-    textToCopy += `市場驗證費\t\t${formatCurrency(budgetData.marketValidationAmount)}\t\t${form.marketValidationRatio}%\n`;
+    textToCopy += `人事成本\t\t${formatCurrency(budgetData.personnelCost)}\t\t${form.personnelCostRatio}%\n`;
+    textToCopy += `委外研究費\t\t${formatCurrency(budgetData.researchCost)}\t\t${form.researchCostRatio}%\n`;
+    textToCopy += `市場驗證費\t\t${formatCurrency(budgetData.marketValidationCost)}\t\t${form.marketValidationRatio}%\n`;
 
     try {
       await navigator.clipboard.writeText(textToCopy);
