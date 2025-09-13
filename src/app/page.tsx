@@ -14,6 +14,19 @@ interface CompletionStatus {
   additionalFeatures: boolean;
 }
 
+interface SubProject {
+  name: string;
+  kpi: string;
+  start_date: string;
+  end_date: string;
+}
+
+interface MajorProject {
+  name: string;
+  sub_projects: SubProject[];
+  plan_percentage: number;
+}
+
 export default function Home() {
   const { user, logout, loading } = useAuth();
   const [completionStatus, setCompletionStatus] = useState<CompletionStatus | null>(null);
@@ -124,11 +137,11 @@ export default function Home() {
 
         if (execution.major_projects && execution.major_projects.length > 0) {
           report += `📋 大項目\n`;
-          execution.major_projects.forEach((majorProject: any, index: number) => {
+          execution.major_projects.forEach((majorProject: MajorProject, index: number) => {
             report += `${index + 1}. ${majorProject.name || '未設定'}\n`;
             if (majorProject.sub_projects && majorProject.sub_projects.length > 0) {
               report += `   子項目：\n`;
-              majorProject.sub_projects.forEach((subProject: any, subIndex: number) => {
+              majorProject.sub_projects.forEach((subProject: SubProject, subIndex: number) => {
                 report += `   ${subIndex + 1}. ${subProject.name || '未設定'}\n`;
                 report += `      KPI：${subProject.kpi || '未設定'}\n`;
                 report += `      期間：${subProject.start_date || '未設定'} - ${subProject.end_date || '未設定'}\n`;
