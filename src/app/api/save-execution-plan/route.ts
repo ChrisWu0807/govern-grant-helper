@@ -50,14 +50,30 @@ export async function POST(request: NextRequest) {
       projectId = projectResult.rows[0].id;
     }
 
+    // 解析 startDate 為年、月、日
+    let startYear, startMonth, startDay;
+    
+    if (executionData.startDate) {
+      // 新格式：startDate (YYYY-MM-DD)
+      const date = new Date(executionData.startDate);
+      startYear = date.getFullYear();
+      startMonth = date.getMonth() + 1; // getMonth() 返回 0-11，需要 +1
+      startDay = date.getDate();
+    } else {
+      // 舊格式：startYear, startMonth, startDay
+      startYear = executionData.startYear || new Date().getFullYear();
+      startMonth = executionData.startMonth || new Date().getMonth() + 1;
+      startDay = executionData.startDay || new Date().getDate();
+    }
+
     // 儲存或更新執行規劃
     const executionPlanData = {
       project_id: projectId,
       major_projects: result.major_projects,
       sub_projects_per_major: executionData.subProjectsPerMajor,
-      start_year: executionData.startYear,
-      start_month: executionData.startMonth,
-      start_day: executionData.startDay,
+      start_year: startYear,
+      start_month: startMonth,
+      start_day: startDay,
       duration_months: executionData.durationMonths,
       project_name: result.project_name,
       total_duration: result.total_duration,
