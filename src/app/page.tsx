@@ -146,10 +146,11 @@ export default function Home() {
       title: "預約諮詢",
       description: "專業創業教練諮詢服務",
       icon: "👨‍🏫",
-      href: "/contact-coach",
+      href: "https://artherbooking.zeabur.app/",
       color: "from-indigo-500 to-indigo-600",
       hoverColor: "from-indigo-600 to-indigo-700",
-      isCompleted: completionStatus?.contactCoach || false
+      isCompleted: completionStatus?.contactCoach || false,
+      isExternal: true
     },
     {
       id: "extensions",
@@ -223,12 +224,18 @@ export default function Home() {
 
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature) => (
-            <Link
-              key={feature.id}
-              href={feature.href}
-              className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-            >
+          {features.map((feature) => {
+            const ButtonComponent = feature.isExternal ? 'a' : Link;
+            const buttonProps = feature.isExternal 
+              ? { href: feature.href, target: '_blank', rel: 'noopener noreferrer' }
+              : { href: feature.href };
+            
+            return (
+              <ButtonComponent
+                key={feature.id}
+                {...buttonProps}
+                className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+              >
               {/* Status Badge */}
               <div className="absolute top-4 right-4">
                 {getStatusBadge(feature.isCompleted)}
@@ -253,7 +260,7 @@ export default function Home() {
 
               {/* Hover Effect */}
               <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${feature.hoverColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-            </Link>
+            </ButtonComponent>
           ))}
         </div>
 
