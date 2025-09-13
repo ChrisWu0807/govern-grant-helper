@@ -31,19 +31,18 @@ export async function POST(request: NextRequest) {
 
     // 查找或創建專案
     let projectId;
-    if (isCorrection) {
-      // 如果是修正，使用現有專案
-      const projectResult = await pool.query(
-        "SELECT id FROM projects WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1",
-        [decoded.userId]
-      );
-      
-      if (projectResult.rows.length === 0) {
-        return NextResponse.json({ error: "找不到專案" }, { status: 404 });
-      }
-      projectId = projectResult.rows[0].id;
+    
+    // 先嘗試找到現有專案
+    const existingProjectResult = await pool.query(
+      "SELECT id FROM projects WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1",
+      [decoded.userId]
+    );
+    
+    if (existingProjectResult.rows.length > 0) {
+      // 使用現有專案
+      projectId = existingProjectResult.rows[0].id;
     } else {
-      // 如果是新生成，創建新專案
+      // 如果沒有現有專案，創建新專案
       const projectResult = await pool.query(
         "INSERT INTO projects (user_id, name, status) VALUES ($1, $2, 'draft') RETURNING id",
         [decoded.userId, projectName]
@@ -67,7 +66,13 @@ export async function POST(request: NextRequest) {
       updated_at: new Date()
     };
 
-    if (isCorrection) {
+    // 檢查是否已存在記錄
+    const existingRecord = await pool.query(
+      "SELECT id FROM execution_plans WHERE project_id = $1",
+      [projectId]
+    );
+
+    if (existingRecord.rows.length > 0) {
       // 更新現有記錄
       await pool.query(`
         UPDATE execution_plans SET
