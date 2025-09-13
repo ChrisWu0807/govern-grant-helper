@@ -55,6 +55,151 @@ export default function Home() {
 
     loadCompletionStatus();
   }, [user]);
+
+  // 全部匯出功能
+  const downloadCompleteReport = async () => {
+    try {
+      // 獲取所有資料
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.error('沒有認證令牌');
+        return;
+      }
+
+      // 獲取計劃摘要
+      const planSummaryResponse = await fetch('/api/load-plan-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const planSummaryData = await planSummaryResponse.json();
+
+      // 獲取執行規劃
+      const executionResponse = await fetch('/api/load-execution-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const executionData = await executionResponse.json();
+
+      // 獲取預算編列
+      const budgetResponse = await fetch('/api/load-budget-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const budgetData = await budgetResponse.json();
+
+      // 生成完整報告
+      let report = `📝 政府補助案完整報告\n`;
+      report += `生成時間：${new Date().toLocaleString('zh-TW')}\n`;
+      report += `═══════════════════════════════════════\n\n`;
+
+      // 計劃摘要
+      if (planSummaryData.success && planSummaryData.data) {
+        const planSummary = planSummaryData.data.result;
+        report += `📝 計劃摘要\n`;
+        report += `═══════════════════════════════════════\n`;
+        report += `🎯 創業動機及計畫目標\n${planSummary.motivation_and_goal}\n\n`;
+        report += `📦 產品描述\n${planSummary.product_description}\n\n`;
+        report += `⚙️ 重要工作項目\n${planSummary.key_tasks}\n\n`;
+        report += `📈 產出及效益\n${planSummary.outcomes_and_benefits}\n\n`;
+      }
+
+      // 執行規劃
+      if (executionData.success && executionData.data) {
+        const execution = executionData.data.result;
+        report += `⚙️ 執行規劃\n`;
+        report += `═══════════════════════════════════════\n`;
+        report += `📊 專案概覽\n`;
+        report += `專案名稱：${execution.project_name || '未設定'}\n`;
+        report += `執行期間：${execution.execution_period || '未設定'}\n`;
+        report += `總時程：${execution.total_duration || '未設定'}\n\n`;
+
+        if (execution.major_projects && execution.major_projects.length > 0) {
+          report += `📋 大項目\n`;
+          execution.major_projects.forEach((majorProject: any, index: number) => {
+            report += `${index + 1}. ${majorProject.name || '未設定'}\n`;
+            if (majorProject.sub_projects && majorProject.sub_projects.length > 0) {
+              report += `   子項目：\n`;
+              majorProject.sub_projects.forEach((subProject: any, subIndex: number) => {
+                report += `   ${subIndex + 1}. ${subProject.name || '未設定'}\n`;
+                report += `      KPI：${subProject.kpi || '未設定'}\n`;
+                report += `      期間：${subProject.start_date || '未設定'} - ${subProject.end_date || '未設定'}\n`;
+              });
+            }
+            report += `\n`;
+          });
+        }
+      }
+
+      // 預算編列
+      if (budgetData.success && budgetData.data) {
+        const budget = budgetData.data.formData;
+        const totalBudget = budget.totalBudget * 10000; // 轉換為元
+        const selfFundAmount = totalBudget * (budget.selfFundRatio / 100);
+        const subsidyAmount = totalBudget * (budget.subsidyRatio / 100);
+        const personnelCost = totalBudget * (budget.personnelCostRatio / 100);
+        const researchCost = totalBudget * (budget.researchCostRatio / 100);
+        const marketValidationCost = totalBudget * (budget.marketValidationRatio / 100);
+
+        const formatCurrency = (amount: number) => {
+          return new Intl.NumberFormat('zh-TW', {
+            style: 'currency',
+            currency: 'TWD',
+            minimumFractionDigits: 0,
+          }).format(amount);
+        };
+
+        report += `💰 預算編列\n`;
+        report += `═══════════════════════════════════════\n`;
+        report += `📊 預算總覽\n`;
+        report += `總預算：${formatCurrency(totalBudget)}\n`;
+        report += `自籌款：${formatCurrency(selfFundAmount)} (${budget.selfFundRatio}%)\n`;
+        report += `補助款：${formatCurrency(subsidyAmount)} (${budget.subsidyRatio}%)\n\n`;
+        
+        report += `📋 預算分配\n`;
+        report += `人事成本：${formatCurrency(personnelCost)} (${budget.personnelCostRatio}%)\n`;
+        report += `委外研究費：${formatCurrency(researchCost)} (${budget.researchCostRatio}%)\n`;
+        report += `市場驗證費：${formatCurrency(marketValidationCost)} (${budget.marketValidationRatio}%)\n\n`;
+        
+        report += `📈 預算明細表\n`;
+        report += `項目\t\t金額\t\t比例\n`;
+        report += `────────────────────────────\n`;
+        report += `總預算\t\t${formatCurrency(totalBudget)}\t\t100%\n`;
+        report += `自籌款\t\t${formatCurrency(selfFundAmount)}\t\t${budget.selfFundRatio}%\n`;
+        report += `補助款\t\t${formatCurrency(subsidyAmount)}\t\t${budget.subsidyRatio}%\n`;
+        report += `────────────────────────────\n`;
+        report += `人事成本\t\t${formatCurrency(personnelCost)}\t\t${budget.personnelCostRatio}%\n`;
+        report += `委外研究費\t\t${formatCurrency(researchCost)}\t\t${budget.researchCostRatio}%\n`;
+        report += `市場驗證費\t\t${formatCurrency(marketValidationCost)}\t\t${budget.marketValidationRatio}%\n\n`;
+      }
+
+      report += `═══════════════════════════════════════\n`;
+      report += `感謝使用政府補助案小寫手！\n`;
+      report += `祝您的創業計畫順利成功！\n`;
+
+      // 下載文件
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `政府補助案完整報告_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error('下載報告失敗:', error);
+    }
+  };
   
   // 如果正在載入，顯示載入畫面
   if (loading || statusLoading) {
@@ -138,8 +283,7 @@ export default function Home() {
       icon: "📈",
       href: "/traffic-acquisition",
       color: "from-purple-500 to-purple-600",
-      hoverColor: "from-purple-600 to-purple-700",
-      isCompleted: completionStatus?.trafficAcquisition || false
+      hoverColor: "from-purple-600 to-purple-700"
     },
     {
       id: "contact-coach",
@@ -149,7 +293,6 @@ export default function Home() {
       href: "https://artherbooking.zeabur.app/",
       color: "from-indigo-500 to-indigo-600",
       hoverColor: "from-indigo-600 to-indigo-700",
-      isCompleted: completionStatus?.contactCoach || false,
       isExternal: true
     },
     {
@@ -159,8 +302,7 @@ export default function Home() {
       icon: "🔧",
       href: "/extensions",
       color: "from-gray-500 to-gray-600",
-      hoverColor: "from-gray-600 to-gray-700",
-      isCompleted: completionStatus?.additionalFeatures || false
+      hoverColor: "from-gray-600 to-gray-700"
     }
   ];
 
@@ -213,6 +355,16 @@ export default function Home() {
             <span className="text-lg text-gray-700">
               歡迎回來，{user.name}！
             </span>
+            {/* 全部匯出按鈕 - 只有當三個主要功能都完成時才顯示 */}
+            {completionStatus?.planSummary && completionStatus?.executionPlan && completionStatus?.budgetPlanning && (
+              <button
+                onClick={downloadCompleteReport}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                <span className="mr-2">📄</span>
+                全部匯出
+              </button>
+            )}
             <button
               onClick={logout}
               className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
@@ -234,10 +386,12 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
                 >
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    {getStatusBadge(feature.isCompleted)}
-                  </div>
+                  {/* Status Badge - 只有主要功能顯示狀態 */}
+                  {feature.isCompleted !== undefined && (
+                    <div className="absolute top-4 right-4">
+                      {getStatusBadge(feature.isCompleted)}
+                    </div>
+                  )}
 
                   {/* Icon */}
                   <div className="text-center mb-6">
@@ -267,10 +421,12 @@ export default function Home() {
                   href={feature.href}
                   className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
                 >
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    {getStatusBadge(feature.isCompleted)}
-                  </div>
+                  {/* Status Badge - 只有主要功能顯示狀態 */}
+                  {feature.isCompleted !== undefined && (
+                    <div className="absolute top-4 right-4">
+                      {getStatusBadge(feature.isCompleted)}
+                    </div>
+                  )}
 
                   {/* Icon */}
                   <div className="text-center mb-6">
