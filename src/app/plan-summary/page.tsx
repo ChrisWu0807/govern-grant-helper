@@ -428,31 +428,45 @@ ${result.outcomes_and_benefits}`;
                 </div>
               </div>
 
-              {/* 重新填寫按鈕 */}
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => {
-                    setHasExistingData(false);
-                    setResult(null);
-                    setCurrentStep(0);
-                    setForm({
-                      product: "",
-                      service: "",
-                      feature: "",
-                      target: "",
-                      situation: "",
-                      ability: "",
-                      detail_number: "",
-                      analogy: "",
-                      differentiation: "",
-                      opportunity: "",
-                      uniqueness: "",
-                    });
-                  }}
-                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
-                >
-                  🔄 重新填寫
-                </button>
+              {/* 按鈕區域 */}
+              <div className="mt-6 text-center space-y-4">
+                {/* 前進下一步按鈕 */}
+                <div>
+                  <Link
+                    href="/execution-plan"
+                    className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-lg rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <span className="mr-2">➡️</span>
+                    前進下一步：執行規劃
+                  </Link>
+                </div>
+                
+                {/* 重新填寫按鈕 */}
+                <div>
+                  <button
+                    onClick={() => {
+                      setHasExistingData(false);
+                      setResult(null);
+                      setCurrentStep(0);
+                      setForm({
+                        product: "",
+                        service: "",
+                        feature: "",
+                        target: "",
+                        situation: "",
+                        ability: "",
+                        detail_number: "",
+                        analogy: "",
+                        differentiation: "",
+                        opportunity: "",
+                        uniqueness: "",
+                      });
+                    }}
+                    className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    🔄 重新填寫
+                  </button>
+                </div>
               </div>
             </div>
           </div>

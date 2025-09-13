@@ -112,6 +112,123 @@ export default function BudgetPlanning() {
     }
   };
 
+  const downloadCompleteReport = async () => {
+    try {
+      // 獲取所有資料
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.error('沒有認證令牌');
+        return;
+      }
+
+      // 獲取計劃摘要
+      const planSummaryResponse = await fetch('/api/load-plan-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const planSummaryData = await planSummaryResponse.json();
+
+      // 獲取執行規劃
+      const executionResponse = await fetch('/api/load-execution-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const executionData = await executionResponse.json();
+
+      // 生成完整報告
+      let report = `📝 政府補助案完整報告\n`;
+      report += `生成時間：${new Date().toLocaleString('zh-TW')}\n`;
+      report += `═══════════════════════════════════════\n\n`;
+
+      // 計劃摘要
+      if (planSummaryData.success && planSummaryData.data) {
+        const planSummary = planSummaryData.data.result;
+        report += `📝 計劃摘要\n`;
+        report += `═══════════════════════════════════════\n`;
+        report += `🎯 創業動機及計畫目標\n${planSummary.motivation_and_goal}\n\n`;
+        report += `📦 產品描述\n${planSummary.product_description}\n\n`;
+        report += `⚙️ 重要工作項目\n${planSummary.key_tasks}\n\n`;
+        report += `📈 產出及效益\n${planSummary.outcomes_and_benefits}\n\n`;
+      }
+
+      // 執行規劃
+      if (executionData.success && executionData.data) {
+        const execution = executionData.data.result;
+        report += `⚙️ 執行規劃\n`;
+        report += `═══════════════════════════════════════\n`;
+        report += `📊 專案概覽\n`;
+        report += `專案名稱：${execution.project_name || '未設定'}\n`;
+        report += `執行期間：${execution.execution_period || '未設定'}\n`;
+        report += `總時程：${execution.total_duration || '未設定'}\n\n`;
+
+        if (execution.major_projects && execution.major_projects.length > 0) {
+          report += `📋 大項目\n`;
+          execution.major_projects.forEach((majorProject: any, index: number) => {
+            report += `${index + 1}. ${majorProject.name || '未設定'}\n`;
+            if (majorProject.sub_projects && majorProject.sub_projects.length > 0) {
+              report += `   子項目：\n`;
+              majorProject.sub_projects.forEach((subProject: any, subIndex: number) => {
+                report += `   ${subIndex + 1}. ${subProject.name || '未設定'}\n`;
+                report += `      KPI：${subProject.kpi || '未設定'}\n`;
+                report += `      期間：${subProject.start_date || '未設定'} - ${subProject.end_date || '未設定'}\n`;
+              });
+            }
+            report += `\n`;
+          });
+        }
+      }
+
+      // 預算編列
+      const budgetData = generateBudgetTable();
+      report += `💰 預算編列\n`;
+      report += `═══════════════════════════════════════\n`;
+      report += `📊 預算總覽\n`;
+      report += `總預算：${formatCurrency(budgetData.totalBudget)}\n`;
+      report += `自籌款：${formatCurrency(budgetData.selfFundAmount)} (${form.selfFundRatio}%)\n`;
+      report += `補助款：${formatCurrency(budgetData.subsidyAmount)} (${form.subsidyRatio}%)\n\n`;
+      
+      report += `📋 預算分配\n`;
+      report += `人事成本：${formatCurrency(budgetData.personnelCost)} (${form.personnelCostRatio}%)\n`;
+      report += `委外研究費：${formatCurrency(budgetData.researchCost)} (${form.researchCostRatio}%)\n`;
+      report += `市場驗證費：${formatCurrency(budgetData.marketValidationCost)} (${form.marketValidationRatio}%)\n\n`;
+      
+      report += `📈 預算明細表\n`;
+      report += `項目\t\t金額\t\t比例\n`;
+      report += `────────────────────────────\n`;
+      report += `總預算\t\t${formatCurrency(budgetData.totalBudget)}\t\t100%\n`;
+      report += `自籌款\t\t${formatCurrency(budgetData.selfFundAmount)}\t\t${form.selfFundRatio}%\n`;
+      report += `補助款\t\t${formatCurrency(budgetData.subsidyAmount)}\t\t${form.subsidyRatio}%\n`;
+      report += `────────────────────────────\n`;
+      report += `人事成本\t\t${formatCurrency(budgetData.personnelCost)}\t\t${form.personnelCostRatio}%\n`;
+      report += `委外研究費\t\t${formatCurrency(budgetData.researchCost)}\t\t${form.researchCostRatio}%\n`;
+      report += `市場驗證費\t\t${formatCurrency(budgetData.marketValidationCost)}\t\t${form.marketValidationRatio}%\n\n`;
+
+      report += `═══════════════════════════════════════\n`;
+      report += `感謝使用政府補助案小寫手！\n`;
+      report += `祝您的創業計畫順利成功！\n`;
+
+      // 下載文件
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `政府補助案完整報告_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error('下載報告失敗:', error);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: parseFloat(value) || 0 });
@@ -328,25 +445,40 @@ export default function BudgetPlanning() {
                 </div>
               )}
 
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => {
-                    setHasExistingData(false);
-                    setShowResult(false);
-                    setCurrentStep(0);
-                    setForm({
-                      totalBudget: 0,
-                      selfFundRatio: 0,
-                      subsidyRatio: 0,
-                      personnelCostRatio: 0,
-                      researchCostRatio: 0,
-                      marketValidationRatio: 0,
-                    });
-                  }}
-                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
-                >
-                  🔄 重新填寫
-                </button>
+              {/* 按鈕區域 */}
+              <div className="mt-6 text-center space-y-4">
+                {/* 恭喜完成按鈕 */}
+                <div>
+                  <button
+                    onClick={downloadCompleteReport}
+                    className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-lg rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <span className="mr-2">🎉</span>
+                    恭喜你完成了全部的填寫 按此輸出結果
+                  </button>
+                </div>
+                
+                {/* 重新填寫按鈕 */}
+                <div>
+                  <button
+                    onClick={() => {
+                      setHasExistingData(false);
+                      setShowResult(false);
+                      setCurrentStep(0);
+                      setForm({
+                        totalBudget: 0,
+                        selfFundRatio: 0,
+                        subsidyRatio: 0,
+                        personnelCostRatio: 0,
+                        researchCostRatio: 0,
+                        marketValidationRatio: 0,
+                      });
+                    }}
+                    className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    🔄 重新填寫
+                  </button>
+                </div>
               </div>
             </div>
           </div>
