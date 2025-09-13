@@ -3,12 +3,61 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+
+interface CompletionStatus {
+  planSummary: boolean;
+  executionPlan: boolean;
+  budgetPlanning: boolean;
+  trafficAcquisition: boolean;
+  contactCoach: boolean;
+  additionalFeatures: boolean;
+}
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
+  const [completionStatus, setCompletionStatus] = useState<CompletionStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+
+  // 載入完成狀態
+  useEffect(() => {
+    const loadCompletionStatus = async () => {
+      if (!user) {
+        setStatusLoading(false);
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          setStatusLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/check-completion-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setCompletionStatus(data.data);
+        }
+      } catch (error) {
+        console.error('載入完成狀態錯誤:', error);
+      } finally {
+        setStatusLoading(false);
+      }
+    };
+
+    loadCompletionStatus();
+  }, [user]);
   
   // 如果正在載入，顯示載入畫面
-  if (loading) {
+  if (loading || statusLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
@@ -57,85 +106,76 @@ export default function Home() {
       title: "計劃摘要",
       description: "AI 驅動的創業計劃摘要生成",
       icon: "📝",
-      status: "completed",
       href: "/plan-summary",
       color: "from-blue-500 to-blue-600",
-      hoverColor: "from-blue-600 to-blue-700"
+      hoverColor: "from-blue-600 to-blue-700",
+      isCompleted: completionStatus?.planSummary || false
     },
     {
       id: "execution-plan",
       title: "執行規劃",
       description: "詳細的項目執行計劃制定",
       icon: "⚙️",
-      status: "coming-soon",
       href: "/execution-plan",
       color: "from-green-500 to-green-600",
-      hoverColor: "from-green-600 to-green-700"
+      hoverColor: "from-green-600 to-green-700",
+      isCompleted: completionStatus?.executionPlan || false
     },
     {
       id: "budget-planning",
       title: "預算編列",
       description: "完整的財務預算規劃工具",
       icon: "💰",
-      status: "coming-soon",
       href: "/budget-planning",
       color: "from-yellow-500 to-yellow-600",
-      hoverColor: "from-yellow-600 to-yellow-700"
+      hoverColor: "from-yellow-600 to-yellow-700",
+      isCompleted: completionStatus?.budgetPlanning || false
     },
     {
       id: "traffic-acquisition",
       title: "流量獲取",
       description: "市場推廣與客戶獲取策略",
       icon: "📈",
-      status: "coming-soon",
       href: "/traffic-acquisition",
       color: "from-purple-500 to-purple-600",
-      hoverColor: "from-purple-600 to-purple-700"
+      hoverColor: "from-purple-600 to-purple-700",
+      isCompleted: completionStatus?.trafficAcquisition || false
     },
     {
       id: "contact-coach",
       title: "預約諮詢",
       description: "專業創業教練諮詢服務",
       icon: "👨‍🏫",
-      status: "available",
       href: "/contact-coach",
       color: "from-indigo-500 to-indigo-600",
-      hoverColor: "from-indigo-600 to-indigo-700"
+      hoverColor: "from-indigo-600 to-indigo-700",
+      isCompleted: completionStatus?.contactCoach || false
     },
     {
       id: "extensions",
       title: "擴充功能",
       description: "更多實用工具與功能",
       icon: "🔧",
-      status: "coming-soon",
       href: "/extensions",
       color: "from-gray-500 to-gray-600",
-      hoverColor: "from-gray-600 to-gray-700"
+      hoverColor: "from-gray-600 to-gray-700",
+      isCompleted: completionStatus?.additionalFeatures || false
     }
   ];
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            ✅ 已完成
-          </span>
-        );
-      case "available":
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            🔗 可用
-          </span>
-        );
-      case "coming-soon":
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-            🚧 開發中
-          </span>
-        );
-      default:
-        return null;
+  const getStatusBadge = (isCompleted: boolean) => {
+    if (isCompleted) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          ✅ 已完成
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+          📝 待填寫
+        </span>
+      );
     }
   };
 
@@ -187,13 +227,11 @@ export default function Home() {
             <Link
               key={feature.id}
               href={feature.href}
-              className={`group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
-                feature.status === "coming-soon" ? "cursor-not-allowed opacity-75" : "cursor-pointer"
-              }`}
+              className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
             >
               {/* Status Badge */}
               <div className="absolute top-4 right-4">
-                {getStatusBadge(feature.status)}
+                {getStatusBadge(feature.isCompleted)}
               </div>
 
               {/* Icon */}
