@@ -39,6 +39,7 @@ export default function BudgetPlanning() {
   const [showResult, setShowResult] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // 載入現有資料
   useEffect(() => {
@@ -75,6 +76,40 @@ export default function BudgetPlanning() {
       }
     } catch (error) {
       console.error('載入資料錯誤:', error);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    const budgetData = generateBudgetTable();
+    
+    let textToCopy = `💰 預算編列\n\n`;
+    textToCopy += `📊 預算總覽\n`;
+    textToCopy += `總預算：${formatCurrency(budgetData.totalBudget)}\n`;
+    textToCopy += `自籌款：${formatCurrency(budgetData.selfFundAmount)} (${form.selfFundRatio}%)\n`;
+    textToCopy += `補助款：${formatCurrency(budgetData.subsidyAmount)} (${form.subsidyRatio}%)\n\n`;
+    
+    textToCopy += `📋 預算分配\n`;
+    textToCopy += `人事成本：${formatCurrency(budgetData.personnelCostAmount)} (${form.personnelCostRatio}%)\n`;
+    textToCopy += `委外研究費：${formatCurrency(budgetData.researchCostAmount)} (${form.researchCostRatio}%)\n`;
+    textToCopy += `市場驗證費：${formatCurrency(budgetData.marketValidationAmount)} (${form.marketValidationRatio}%)\n\n`;
+    
+    textToCopy += `📈 預算明細表\n`;
+    textToCopy += `項目\t\t金額\t\t比例\n`;
+    textToCopy += `────────────────────────────\n`;
+    textToCopy += `總預算\t\t${formatCurrency(budgetData.totalBudget)}\t\t100%\n`;
+    textToCopy += `自籌款\t\t${formatCurrency(budgetData.selfFundAmount)}\t\t${form.selfFundRatio}%\n`;
+    textToCopy += `補助款\t\t${formatCurrency(budgetData.subsidyAmount)}\t\t${form.subsidyRatio}%\n`;
+    textToCopy += `────────────────────────────\n`;
+    textToCopy += `人事成本\t\t${formatCurrency(budgetData.personnelCostAmount)}\t\t${form.personnelCostRatio}%\n`;
+    textToCopy += `委外研究費\t\t${formatCurrency(budgetData.researchCostAmount)}\t\t${form.researchCostRatio}%\n`;
+    textToCopy += `市場驗證費\t\t${formatCurrency(budgetData.marketValidationAmount)}\t\t${form.marketValidationRatio}%\n`;
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('複製失敗:', err);
     }
   };
 
@@ -218,9 +253,27 @@ export default function BudgetPlanning() {
 
             {/* 預算表格 */}
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                📊 預算規劃表
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  📊 預算規劃表
+                </h2>
+                <button
+                  onClick={copyToClipboard}
+                  className="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  {copySuccess ? (
+                    <>
+                      <span className="mr-2">✅</span>
+                      已複製！
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">📋</span>
+                      複製結果
+                    </>
+                  )}
+                </button>
+              </div>
               
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse border border-gray-300">

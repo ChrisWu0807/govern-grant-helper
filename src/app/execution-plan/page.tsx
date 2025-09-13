@@ -153,6 +153,40 @@ export default function ExecutionPlan() {
     }
   };
 
+  const copyToClipboard = async () => {
+    if (!result) return;
+
+    let textToCopy = `⚙️ 執行規劃\n\n`;
+    textToCopy += `📊 專案概覽\n`;
+    textToCopy += `專案名稱：${result.project_name || '未設定'}\n`;
+    textToCopy += `執行期間：${result.execution_period || '未設定'}\n`;
+    textToCopy += `總時程：${result.total_duration || '未設定'}\n\n`;
+
+    if (result.major_projects && result.major_projects.length > 0) {
+      textToCopy += `📋 大項目\n`;
+      result.major_projects.forEach((majorProject: MajorProject, index: number) => {
+        textToCopy += `${index + 1}. ${majorProject.name || '未設定'}\n`;
+        if (majorProject.sub_projects && majorProject.sub_projects.length > 0) {
+          textToCopy += `   子項目：\n`;
+          majorProject.sub_projects.forEach((subProject: SubProject, subIndex: number) => {
+            textToCopy += `   ${subIndex + 1}. ${subProject.name || '未設定'}\n`;
+            textToCopy += `      KPI：${subProject.kpi || '未設定'}\n`;
+            textToCopy += `      期間：${subProject.start_date || '未設定'} - ${subProject.end_date || '未設定'}\n`;
+          });
+        }
+        textToCopy += `\n`;
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('複製失敗:', err);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'startDate') {
@@ -342,9 +376,27 @@ export default function ExecutionPlan() {
 
             {/* 顯示現有結果 */}
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                📋 生成結果
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  📋 生成結果
+                </h2>
+                <button
+                  onClick={copyToClipboard}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  {copySuccess ? (
+                    <>
+                      <span className="mr-2">✅</span>
+                      已複製！
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">📋</span>
+                      複製結果
+                    </>
+                  )}
+                </button>
+              </div>
               
               <div className="space-y-6">
                 <div className="bg-green-50 rounded-lg p-6">
