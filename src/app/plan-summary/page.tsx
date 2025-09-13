@@ -83,6 +83,7 @@ export default function PlanSummary() {
   const [correctionNotes, setCorrectionNotes] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasExistingData, setHasExistingData] = useState(false);
 
   // 載入現有資料
   useEffect(() => {
@@ -107,6 +108,7 @@ export default function PlanSummary() {
       if (data.success && data.data) {
         setForm(data.data.formData);
         setResult(data.data.result);
+        setHasExistingData(true);
         setCurrentStep(storyTemplate.length - 1); // 跳到最後一步
       }
     } catch (error) {
@@ -262,6 +264,158 @@ export default function PlanSummary() {
     
     return story;
   };
+
+  // 如果有現有資料且已生成結果，直接顯示結果頁面
+  if (hasExistingData && result) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            {/* Header with Back Button */}
+            <div className="mb-8">
+              <Link
+                href="/"
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium mb-4 transition-colors duration-200"
+              >
+                ← 返回中控版
+              </Link>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="relative">
+                    <Image
+                      src="/logo.png"
+                      alt="政府補助案小寫手 Logo"
+                      width={80}
+                      height={80}
+                      className="rounded-full shadow-lg"
+                      priority
+                    />
+                  </div>
+                </div>
+                
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  📝 您的計劃摘要
+                </h1>
+                <p className="text-lg text-gray-600">
+                  以下是您之前生成的計劃摘要，可以查看或進行修正
+                </p>
+              </div>
+            </div>
+
+            {/* 顯示現有結果 */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                📋 生成結果
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="bg-blue-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-blue-800 mb-4">
+                    🎯 創業動機及計畫目標
+                  </h3>
+                  <p className="text-blue-700 leading-relaxed whitespace-pre-line">
+                    {formatText(result.motivation_and_goal)}
+                  </p>
+                </div>
+
+                <div className="bg-green-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-green-800 mb-4">
+                    📦 產品描述
+                  </h3>
+                  <p className="text-green-700 leading-relaxed whitespace-pre-line">
+                    {formatText(result.product_description)}
+                  </p>
+                </div>
+
+                <div className="bg-purple-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-purple-800 mb-4">
+                    ⚙️ 重要工作項目
+                  </h3>
+                  <p className="text-purple-700 leading-relaxed whitespace-pre-line">
+                    {formatText(result.key_tasks)}
+                  </p>
+                </div>
+
+                <div className="bg-orange-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-orange-800 mb-4">
+                    📈 產出及效益
+                  </h3>
+                  <p className="text-orange-700 leading-relaxed whitespace-pre-line">
+                    {formatText(result.outcomes_and_benefits)}
+                  </p>
+                </div>
+              </div>
+
+              {/* 修正備注區 */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+                  ✏️ 修正備註區
+                </h3>
+                <p className="text-gray-600 text-center mb-4">
+                  請閱讀上方報告，如有需要修正的地方，請在下方輸入您的修正建議
+                </p>
+                
+                <div className="space-y-4">
+                  <textarea
+                    value={correctionNotes}
+                    onChange={(e) => setCorrectionNotes(e.target.value)}
+                    placeholder="請輸入您希望修正的內容，例如：&#10;- 希望更強調技術創新部分&#10;- 需要增加更多量化指標&#10;- 調整市場定位描述&#10;- 加強競爭優勢說明"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
+                    rows={5}
+                  />
+                  
+                  <div className="text-center">
+                    <button
+                      onClick={handleCorrection}
+                      disabled={isCorrecting || !correctionNotes.trim()}
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+                    >
+                      {isCorrecting ? (
+                        <span className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          修正中...
+                        </span>
+                      ) : (
+                        "🔄 根據備註重新生成"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 重新填寫按鈕 */}
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => {
+                    setHasExistingData(false);
+                    setResult(null);
+                    setCurrentStep(0);
+                    setForm({
+                      product: "",
+                      service: "",
+                      feature: "",
+                      target: "",
+                      situation: "",
+                      ability: "",
+                      detail_number: "",
+                      analogy: "",
+                      differentiation: "",
+                      opportunity: "",
+                      uniqueness: "",
+                    });
+                  }}
+                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  🔄 重新填寫
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>
