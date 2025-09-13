@@ -84,6 +84,7 @@ export default function ExecutionPlan() {
     result: Result;
     projectName: string;
   } | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // 載入現有資料
   useEffect(() => {

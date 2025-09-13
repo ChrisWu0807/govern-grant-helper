@@ -84,6 +84,7 @@ export default function PlanSummary() {
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // 載入現有資料
   useEffect(() => {
@@ -116,6 +117,31 @@ export default function PlanSummary() {
     }
   };
 
+  const copyToClipboard = async () => {
+    if (!result) return;
+
+    const textToCopy = `📝 計劃摘要
+
+🎯 創業動機及計畫目標
+${result.motivation_and_goal}
+
+📦 產品描述
+${result.product_description}
+
+⚙️ 重要工作項目
+${result.key_tasks}
+
+📈 產出及效益
+${result.outcomes_and_benefits}`;
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('複製失敗:', err);
+    }
+  };
 
   const saveToDatabaseWithData = async (resultData: Result, isCorrection = false) => {
     if (!user || !resultData) return;
@@ -305,9 +331,27 @@ export default function PlanSummary() {
 
             {/* 顯示現有結果 */}
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                📋 生成結果
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  📋 生成結果
+                </h2>
+                <button
+                  onClick={copyToClipboard}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  {copySuccess ? (
+                    <>
+                      <span className="mr-2">✅</span>
+                      已複製！
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">📋</span>
+                      複製結果
+                    </>
+                  )}
+                </button>
+              </div>
               
               <div className="space-y-6">
                 <div className="bg-blue-50 rounded-lg p-6">
@@ -644,9 +688,27 @@ export default function PlanSummary() {
 
         {result && (
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-              📋 生成結果
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                📋 生成結果
+              </h2>
+              <button
+                onClick={copyToClipboard}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
+              >
+                {copySuccess ? (
+                  <>
+                    <span className="mr-2">✅</span>
+                    已複製！
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">📋</span>
+                    複製結果
+                  </>
+                )}
+              </button>
+            </div>
             
             <div className="space-y-6">
               <div className="border-l-4 border-blue-500 pl-4">

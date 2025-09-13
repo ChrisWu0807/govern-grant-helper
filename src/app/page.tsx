@@ -225,43 +225,76 @@ export default function Home() {
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature) => {
-            const ButtonComponent = feature.isExternal ? 'a' : Link;
-            const buttonProps = feature.isExternal 
-              ? { href: feature.href, target: '_blank', rel: 'noopener noreferrer' }
-              : { href: feature.href };
-            
-            return (
-              <ButtonComponent
-                key={feature.id}
-                {...buttonProps}
-                className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-              >
-              {/* Status Badge */}
-              <div className="absolute top-4 right-4">
-                {getStatusBadge(feature.isCompleted)}
-              </div>
+            if (feature.isExternal) {
+              return (
+                <a
+                  key={feature.id}
+                  href={feature.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                >
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    {getStatusBadge(feature.isCompleted)}
+                  </div>
 
-              {/* Icon */}
-              <div className="text-center mb-6">
-                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r ${feature.color} text-white text-3xl shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                  {feature.icon}
-                </div>
-              </div>
+                  {/* Icon */}
+                  <div className="text-center mb-6">
+                    <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r ${feature.color} text-white text-3xl shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                      {feature.icon}
+                    </div>
+                  </div>
 
-              {/* Content */}
-              <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+                  {/* Content */}
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
 
-              {/* Hover Effect */}
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${feature.hoverColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-            </ButtonComponent>
-          ))}
+                  {/* Hover Effect */}
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${feature.hoverColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                </a>
+              );
+            } else {
+              return (
+                <Link
+                  key={feature.id}
+                  href={feature.href}
+                  className="group relative bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                >
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    {getStatusBadge(feature.isCompleted)}
+                  </div>
+
+                  {/* Icon */}
+                  <div className="text-center mb-6">
+                    <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r ${feature.color} text-white text-3xl shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                      {feature.icon}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+
+                  {/* Hover Effect */}
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${feature.hoverColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                </Link>
+              );
+            }
+          })}
         </div>
 
         {/* Footer */}
