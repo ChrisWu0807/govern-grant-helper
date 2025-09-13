@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BudgetData {
   totalBudget: number;
@@ -24,6 +25,7 @@ const budgetTemplate = [
 ];
 
 export default function BudgetPlanning() {
+  const { user } = useAuth();
   const [form, setForm] = useState<BudgetData>({
     totalBudget: 0,
     selfFundRatio: 0,
@@ -35,6 +37,46 @@ export default function BudgetPlanning() {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 載入現有資料
+  useEffect(() => {
+    loadExistingData();
+  }, []);
+
+  const loadExistingData = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.log('沒有認證令牌');
+        return;
+      }
+
+      console.log('開始載入預算規劃資料...');
+      const response = await fetch('/api/load-budget-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      console.log('API 回傳資料:', data);
+      
+      if (data.success && data.data) {
+        console.log('成功載入預算規劃:', data.data);
+        setForm(data.data.formData);
+        setHasExistingData(true);
+        setShowResult(true);
+      } else {
+        console.log('沒有找到預算規劃資料:', data.message || '未知錯誤');
+      }
+    } catch (error) {
+      console.error('載入資料錯誤:', error);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -53,8 +95,43 @@ export default function BudgetPlanning() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setShowResult(true);
+    await saveToDatabase();
+  };
+
+  const saveToDatabase = async () => {
+    try {
+      setIsSaving(true);
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.error('沒有認證令牌');
+        return;
+      }
+
+      const response = await fetch('/api/save-budget-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          budgetData: form
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        console.log('預算規劃已儲存');
+        setHasExistingData(true);
+      } else {
+        console.error('儲存失敗:', data.error);
+      }
+    } catch (error) {
+      console.error('儲存預算規劃錯誤:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const generateBudgetTable = () => {
@@ -99,7 +176,8 @@ export default function BudgetPlanning() {
     }).format(amount);
   };
 
-  if (showResult) {
+  // 如果有現有資料且已生成結果，直接顯示結果頁面
+  if (hasExistingData && showResult) {
     const budgetData = generateBudgetTable();
     
     return (
@@ -130,10 +208,10 @@ export default function BudgetPlanning() {
                 </div>
                 
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  💰 預算編列結果
+                  💰 您的預算規劃
                 </h1>
                 <p className="text-lg text-gray-600">
-                  根據您的輸入參數生成的預算規劃表
+                  以下是您之前生成的預算規劃，可以查看或進行修正
                 </p>
               </div>
             </div>
@@ -188,9 +266,31 @@ export default function BudgetPlanning() {
                 </table>
               </div>
 
+              {/* 儲存狀態提示 */}
+              {isSaving && (
+                <div className="mt-4 text-center">
+                  <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    儲存中...
+                  </div>
+                </div>
+              )}
+
               <div className="mt-6 text-center">
                 <button
-                  onClick={() => setShowResult(false)}
+                  onClick={() => {
+                    setHasExistingData(false);
+                    setShowResult(false);
+                    setCurrentStep(0);
+                    setForm({
+                      totalBudget: 0,
+                      selfFundRatio: 0,
+                      subsidyRatio: 0,
+                      personnelCostRatio: 0,
+                      researchCostRatio: 0,
+                      marketValidationRatio: 0,
+                    });
+                  }}
                   className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
                   🔄 重新填寫
